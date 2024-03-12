@@ -10,7 +10,7 @@ void Assets::addTexture(const std::string& name, const std::string& path)
 {
 	if (m_Textures.find(name) != m_Textures.end())
 	{
-		std::cout << "Texture '" << "' already exists" << std::endl;
+		std::cout << "Texture '" << name << "' already exists" << std::endl;
 		return;
 	}
 
@@ -24,7 +24,7 @@ void Assets::addAnimation(const std::string& name, Animation& anim)
 {
 	if (m_Animations.find(name) != m_Animations.end())
 	{
-		std::cout << "Animation '" << "' already exists" << std::endl;
+		std::cout << "Animation '" << name << "' already exists" << std::endl;
 		return;
 	}
 
@@ -39,7 +39,7 @@ void Assets::addFont(const std::string& name, const std::string& path)
 {
 	if (m_Fonts.find(name) != m_Fonts.end())
 	{
-		std::cout << "Font '" << "' already exists" << std::endl;
+		std::cout << "Font '" << name << "' already exists" << std::endl;
 		return;
 	}
 
