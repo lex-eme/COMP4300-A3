@@ -34,7 +34,7 @@ Tile    Question  8   3
 Tile    Question  10  3
 Tile    Question  7   6
 Tile    Brick     8   6
-Tile    Question  6   6
+Tile    Question  9   6
 Tile    Question  8   9
 Tile    Brick     5   3
 Tile    Brick     7   3
@@ -159,4 +159,4 @@ Tile    Pole      83  5
 Tile    Pole      83  6
 Tile    PoleTop   83  7
 Dec     CloudSmall  2 7
-Player  2 6 48  48  5 -20 20  0.75  Buster
+Player  2 6 24 24 5 -20 20 0.75 Buster

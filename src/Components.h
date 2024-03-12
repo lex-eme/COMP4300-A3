@@ -13,7 +13,7 @@ struct CTransform : public Component
 {
 	Vec2 pos		= { 0.0f, 0.0f };
 	Vec2 prevPos	= { 0.0f, 0.0f };
-	Vec2 scale		= { 4.0f, 4.0f };
+	Vec2 scale		= { 1.0f, 1.0f };
 	Vec2 velocity	= { 0.0f, 0.0f };
 	float angle		= 0.0f;
 
@@ -22,15 +22,6 @@ struct CTransform : public Component
 		: pos(p) {}
 	CTransform(const Vec2& p, const Vec2& sp, const Vec2& sc, float a)
 		: pos(p), prevPos(p), velocity(sp), scale(sc), angle(a) {}
-};
-
-struct CScore : public Component
-{
-	int score = 0;
-
-	CScore() {}
-	CScore(int s)
-		: score(s) {}
 };
 
 struct CLifeSpan : public Component
@@ -63,7 +54,7 @@ struct CBoundingBox : public Component
 
 	CBoundingBox() {}
 	CBoundingBox(const Vec2& s)
-		: size(s), halfSize(s.x / 2, s.y /2) {}
+		: size(s), halfSize(s.x / 2, s.y / 2) {}
 };
 
 struct CAnimation : public Component

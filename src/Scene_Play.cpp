@@ -1,4 +1,7 @@
 #include "Scene_Play.h"
+
+#include <fstream>
+
 #include "GameEngine.h"
 
 Scene_Play::Scene_Play(GameEngine* gameEngine, const std::string& levelPath)
@@ -24,13 +27,11 @@ void Scene_Play::init(const std::string& levelPath)
 
 Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity)
 {
-    // TODO:This function takes in a grid (x, y) position and an Entity
-    //      Return a Vec2 indicating where the center position of the Entity should be
-    //      You must use the Entity's Animation size to position it correctly
-    //      The size of the grid width and height is stored in m_GridSize.x and m_GridSize.y
-    //      The bottom-left corner of the Animation should align with the bottom left of the grid cell
+    const Vec2& size = entity->getComponent<CAnimation>().animation.getSize();
+    float x = (gridX * m_GridSize.x) + (size.x / 2.0f);
+    float y = (height() - (gridY) * m_GridSize.y) - size.y / 2.0f;
 
-    return Vec2();
+    return Vec2(x, y);
 }
 
 void Scene_Play::loadLevel(const std::string& filename)
@@ -38,39 +39,46 @@ void Scene_Play::loadLevel(const std::string& filename)
     // reset the entity manager every time we load a level
     m_Entities = EntityManager();
 
-    // TODO: read in the level file and add the appropriate entities
-    //       use the playerConfig struct m_PlayerConfig to store player properties
-    //       this struct is defined at the top of Scene_Play.h
+    std::ifstream fin(filename);
+    std::string temp;
 
-    // NOTE: all of the code below is sample code which shows you how to
-    //       set up and use entities with the new syntax, it should be removed
+    while (fin >> temp)
+    {
+        if (temp == "Tile")
+        {
+            std::string name;
+            float x, y;
+            fin >> name >> x >> y;
+            auto e = m_Entities.addEntity(name);
+            
+            e->addComponent<CAnimation>(m_Game->assets().getAnimation(name), false);
+            e->addComponent<CTransform>(gridToMidPixel(x, y, e));
+            e->addComponent<CBoundingBox>(m_Game->assets().getAnimation(name).getSize());
+        }
+        else if (temp == "Dec")
+        {
+            std::string name;
+            float x, y;
+            fin >> name >> x >> y;
+            auto e = m_Entities.addEntity(name);
+
+            e->addComponent<CAnimation>(m_Game->assets().getAnimation(name), false);
+            e->addComponent<CTransform>(gridToMidPixel(x, y, e));
+        }
+        else if (temp == "Player")
+        {
+            fin >> m_PlayerConfig.X >> m_PlayerConfig.Y >> m_PlayerConfig.CX
+                >> m_PlayerConfig.CY >> m_PlayerConfig.MAXSPEED >> m_PlayerConfig.JUMP
+                >> m_PlayerConfig.GRAVITY >> m_PlayerConfig.WEAPON;
+        }
+    }
 
     spawnPlayer();
-
-    // some sample entities
-    auto brick = m_Entities.addEntity("tile");
-    // IMPORTANT: always add the CAnimation component first so that gridToMapPixel can compute correctly
-    brick->addComponent<CAnimation>(m_Game->assets().getAnimation("Brick"), true);
-    brick->addComponent<CTransform>(Vec2(96, 480));
-    brick->addComponent<CBoundingBox>(Vec2(64, 64));
-
-    // NOTE: Your final code should position the entity with the grid x,y position read from the file:
-    // brick->addComponent<CTransform>(gridToMidPixel(gridX, gridY, brick);
 
     /*if (brick->getComponent<CAnimation>().animation.getName() == "Brick")
     {
         std::cout << "This could be a good way od identifying if tile is a tile is a brick" << std::endl;
     }*/
-
-    auto block = m_Entities.addEntity("tile");
-    block->addComponent<CAnimation>(m_Game->assets().getAnimation("Block"), true);
-    block->addComponent<CTransform>(Vec2(224, 480));
-    // add a bounding box, this will now show up if we press 'C' key
-    block->addComponent<CBoundingBox>(m_Game->assets().getAnimation("Block").getSize() * block->getComponent<CTransform>().scale.y);
-
-    auto question = m_Entities.addEntity("tile");
-    //question->addComponent<CAnimation>(m_Game->assets().getAnimation("Question"), true);
-    question->addComponent<CTransform>(Vec2(352, 480));
 
     // NOTE: this is incredibly important please read this example
     //      Components are now returned as references rather than pointers
@@ -88,10 +96,10 @@ void Scene_Play::loadLevel(const std::string& filename)
 void Scene_Play::spawnPlayer()
 {
     m_Player = m_Entities.addEntity("player");
-    //m_Player->addComponent<CAnimation>(m_Game->assets().getAnimation("Stand"), true);
-    m_Player->addComponent<CTransform>(Vec2(224, 352));
-    m_Player->addComponent<CBoundingBox>(Vec2(48, 48));
-    m_Player->addComponent<CGravity>(0.1f);
+    m_Player->addComponent<CAnimation>(m_Game->assets().getAnimation("Stand"), true);
+    m_Player->addComponent<CTransform>(gridToMidPixel(m_PlayerConfig.X, m_PlayerConfig.Y, m_Player));
+    m_Player->addComponent<CBoundingBox>(Vec2(m_PlayerConfig.CX, m_PlayerConfig.CY));
+    m_Player->addComponent<CGravity>(m_PlayerConfig.GRAVITY);
 
     // TODO: be suze to add the remaining components to the player
 }
@@ -129,7 +137,6 @@ void Scene_Play::sLifespan()
 
 void Scene_Play::sCollision()
 {
-
     // REMEMBER: SFML's (0,0) position is on the TOP-LEFT corner
     //           This means jumping will have a negative y-component
     //           and gravity will have a positive y-component
@@ -183,8 +190,8 @@ void Scene_Play::onEnd()
 void Scene_Play::sRender()
 {
     // color the background darker so you know that the game is paused
-    if (!m_Paused) { m_Game->window().clear(sf::Color(100, 100, 255)); }
-    else { m_Game->window().clear(sf::Color(50, 50, 150)); }
+    if (!m_Paused) { m_Game->window().clear(sf::Color(148, 148, 255)); }
+    else { m_Game->window().clear(sf::Color(58, 58, 100)); }
 
     // set the viewport of the window to be centered on the player if it's far enough right
     auto& pPos = m_Player->getComponent<CTransform>().pos;
