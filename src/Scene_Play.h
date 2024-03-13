@@ -30,7 +30,7 @@ public:
 
 private:
 	void init(const std::string& levelPath);
-	Vec2 gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity);
+	Vec2 gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity) const;
 	void loadLevel(const std::string& filename);
 	void spawnPlayer();
 	void spawnBullet(std::shared_ptr<Entity> entity);

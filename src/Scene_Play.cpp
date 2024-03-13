@@ -17,6 +17,9 @@ void Scene_Play::init(const std::string& levelPath)
     registerAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
     registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
     registerAction(sf::Keyboard::G, "TOGGLE_GRID");
+    registerAction(sf::Keyboard::Z, "UP");
+    registerAction(sf::Keyboard::D, "RIGHT");
+    registerAction(sf::Keyboard::Q, "LEFT");
     // TODO: Register all gameplay Actions
 
     m_GridText.setCharacterSize(12);
@@ -25,12 +28,11 @@ void Scene_Play::init(const std::string& levelPath)
     loadLevel(levelPath);
 }
 
-Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity)
+Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity) const
 {
     const Vec2& size = entity->getComponent<CAnimation>().animation.getSize();
     float x = (gridX * m_GridSize.x) + (size.x / 2.0f);
-    float y = (height() - (gridY) * m_GridSize.y) - size.y / 2.0f;
-
+    float y = height() - (gridY * m_GridSize.y) - (size.y / 2.0f);
     return Vec2(x, y);
 }
 
@@ -68,8 +70,8 @@ void Scene_Play::loadLevel(const std::string& filename)
         else if (temp == "Player")
         {
             fin >> m_PlayerConfig.X >> m_PlayerConfig.Y >> m_PlayerConfig.CX
-                >> m_PlayerConfig.CY >> m_PlayerConfig.MAXSPEED >> m_PlayerConfig.JUMP
-                >> m_PlayerConfig.GRAVITY >> m_PlayerConfig.WEAPON;
+                >> m_PlayerConfig.CY >> m_PlayerConfig.SPEED >> m_PlayerConfig.MAXSPEED
+                >> m_PlayerConfig.JUMP >> m_PlayerConfig.GRAVITY >> m_PlayerConfig.WEAPON;
         }
     }
 
@@ -97,7 +99,7 @@ void Scene_Play::spawnPlayer()
 {
     m_Player = m_Entities.addEntity("player");
     m_Player->addComponent<CAnimation>(m_Game->assets().getAnimation("Stand"), true);
-    m_Player->addComponent<CTransform>(gridToMidPixel(m_PlayerConfig.X, m_PlayerConfig.Y, m_Player));
+    m_Player->addComponent<CTransform>(gridToMidPixel(m_PlayerConfig.X, m_PlayerConfig.Y, m_Player), Vec2(), Vec2(-1.0f, 1.0f), 0.0f);
     m_Player->addComponent<CBoundingBox>(Vec2(m_PlayerConfig.CX, m_PlayerConfig.CY));
     m_Player->addComponent<CGravity>(m_PlayerConfig.GRAVITY);
 
@@ -125,9 +127,40 @@ void Scene_Play::update()
 void Scene_Play::sMovement()
 {
     // TODO: Implement player movement / jumping based on its CInput component
+    auto& input = m_Player->getComponent<CInput>();
+    auto& transform = m_Player->getComponent<CTransform>();
+    if (input.up && input.canJump)
+    {
+        transform.velocity.y -= m_PlayerConfig.JUMP;
+        input.canJump = false;
+    }
+
+    float xSpeed = 0.0;
+    if (input.right)
+    {
+        xSpeed += m_PlayerConfig.SPEED;
+        transform.scale.x = -1.0f;
+    }
+
+    if (input.left)
+    {
+        xSpeed -= m_PlayerConfig.SPEED;
+        transform.scale.x = 1.0f;
+    }
+
+    transform.velocity.x = xSpeed;
     // TODO: Implement gravity's effect on the player
+    auto& gravity = m_Player->getComponent<CGravity>();
+    transform.velocity.y += gravity.gravity;
+
     // TODO: Implement the maximum player speed in both X and Y directions
+    if (transform.velocity.y <= m_PlayerConfig.MAXSPEED)
+        transform.velocity.y = m_PlayerConfig.MAXSPEED;
+
     // NOTE: Setting an entity's scale.x to -1/1 will make it face to the left/right
+
+    transform.prevPos = transform.pos;
+    transform.pos += transform.velocity;
 }
 
 void Scene_Play::sLifespan()
@@ -157,6 +190,8 @@ void Scene_Play::sCollision()
 
 void Scene_Play::sDoAction(const Action& action)
 {
+    auto& input = m_Player->getComponent<CInput>();
+
     if (action.type() == "START")
     {
              if (action.name() == "TOGGLE_TEXTURE")     { m_DrawTextures = !m_DrawTextures; }
@@ -164,10 +199,15 @@ void Scene_Play::sDoAction(const Action& action)
         else if (action.name() == "TOGGLE_GRID")        { m_DrawGrid = !m_DrawGrid; }
         else if (action.name() == "PAUSE")              { m_Paused = !m_Paused; }
         else if (action.name() == "QUIT")               { onEnd(); }
+        else if (action.name() == "UP")                 { input.up = true; }
+        else if (action.name() == "RIGHT")              { input.right = true; }
+        else if (action.name() == "LEFT")               { input.left = true; }
     }
     else if (action.type() == "END")
     {
-
+             if (action.name() == "UP")         { input.up = false; }
+        else if (action.name() == "RIGHT")      { input.right = false; }
+        else if (action.name() == "LEFT")       { input.left = false; }
     }
 }
 
