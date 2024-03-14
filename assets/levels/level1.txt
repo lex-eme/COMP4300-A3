@@ -159,4 +159,4 @@ Tile    Pole      83  5
 Tile    Pole      83  6
 Tile    PoleTop   83  7
 Dec     CloudSmall  2 7
-Player  2 6 24 24 2 -15 15 0.3 Buster
+Player  2 6 24 24 2 10 10 0.5 Buster

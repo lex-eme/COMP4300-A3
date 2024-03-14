@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "GameEngine.h"
+#include "Physics.h"
 
 Scene_Play::Scene_Play(GameEngine* gameEngine, const std::string& levelPath)
     : Scene(gameEngine), m_LevelPath(levelPath)
@@ -18,6 +19,7 @@ void Scene_Play::init(const std::string& levelPath)
     registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
     registerAction(sf::Keyboard::G, "TOGGLE_GRID");
     registerAction(sf::Keyboard::Z, "UP");
+    registerAction(sf::Keyboard::S, "DOWN");
     registerAction(sf::Keyboard::D, "RIGHT");
     registerAction(sf::Keyboard::Q, "LEFT");
     // TODO: Register all gameplay Actions
@@ -135,7 +137,7 @@ void Scene_Play::sMovement()
         input.canJump = false;
     }
 
-    float xSpeed = 0.0;
+    float xSpeed = 0.0f;
     if (input.right)
     {
         xSpeed += m_PlayerConfig.SPEED;
@@ -147,17 +149,22 @@ void Scene_Play::sMovement()
         xSpeed -= m_PlayerConfig.SPEED;
         transform.scale.x = 1.0f;
     }
-
     transform.velocity.x = xSpeed;
-    // TODO: Implement gravity's effect on the player
+
+    if (xSpeed == 0.0f)
+    {
+        m_Player->getComponent<CState>().state = "Stand";
+    }
+    else
+    {
+        m_Player->getComponent<CState>().state = "Run";
+    }
+
     auto& gravity = m_Player->getComponent<CGravity>();
     transform.velocity.y += gravity.gravity;
 
-    // TODO: Implement the maximum player speed in both X and Y directions
-    if (transform.velocity.y <= m_PlayerConfig.MAXSPEED)
+    if (transform.velocity.y >= m_PlayerConfig.MAXSPEED)
         transform.velocity.y = m_PlayerConfig.MAXSPEED;
-
-    // NOTE: Setting an entity's scale.x to -1/1 will make it face to the left/right
 
     transform.prevPos = transform.pos;
     transform.pos += transform.velocity;
@@ -170,22 +177,73 @@ void Scene_Play::sLifespan()
 
 void Scene_Play::sCollision()
 {
-    // REMEMBER: SFML's (0,0) position is on the TOP-LEFT corner
-    //           This means jumping will have a negative y-component
-    //           and gravity will have a positive y-component
-    //           Also, something BELOW something else will have a y value GREATER than it
-    //           Also, something ABOVE something else will have a y value LESS than it
-
-    // TODO: Implement Physics::GetOverlap() function, use it inside this function
-
     // TODO: Implement bullet / tile collisions
     //       Destroy the tile if it has a Brick animation
     // TODO: Implement player / tile collisions and resolutions
     //       Update the CState component of the player to store whether
     //       it is currently on the ground or in the air. This will be
     //       used by the Animation system
-    // TODO: Check to see if the player has fallen down a hole (y > height())
-    // TODO: Don't let the player walk off the left side of the map
+    auto& pPos = m_Player->getComponent<CTransform>().pos;
+    bool hasCollision = false;
+
+    for (auto e : m_Entities.getEntities())
+    {
+        if (!e->hasComponent<CBoundingBox>() || !e->hasComponent<CTransform>() || e == m_Player)
+            continue;
+
+        Vec2 overlap = Physics::GetOverlap(e, m_Player);
+        Vec2 prevOverlap = Physics::GetPreviousOverlap(e, m_Player);
+
+        if (!(overlap.x < 0.0f || overlap.y < 0.0f))
+        {
+            hasCollision = true;
+            auto& qPos = e->getComponent<CTransform>().pos;
+            auto& pPrevPos = m_Player->getComponent<CTransform>().prevPos;
+            if (prevOverlap.y > 0.0f)
+            {
+                pPos.x += pPos.x < qPos.x ? -overlap.x : overlap.x;
+            }
+
+            if (prevOverlap.x > 0.0f)
+            {
+                if (pPrevPos.y > qPos.y)
+                {
+                    pPos.y += overlap.y;
+                    const std::string& name = e->getComponent<CAnimation>().animation.getName();
+                    if (name == "Question")
+                    {
+                        e->addComponent<CAnimation>(m_Game->assets().getAnimation("Question2"), true);
+                    }
+                    else if (name == "Brick")
+                    {
+                        e->destroy();
+                    }
+                }
+                else
+                {
+                    pPos.y -= overlap.y;
+                    m_Player->getComponent<CInput>().canJump = true;
+                }
+                m_Player->getComponent<CTransform>().velocity.y = 0.0f;
+            }
+        }
+    }
+
+    if (!hasCollision)
+    {
+        m_Player->getComponent<CState>().state = "Air";
+    }
+    
+    if (pPos.y > height())
+    {
+        m_Player->destroy();
+        spawnPlayer();
+    }
+    
+    if (pPos.x < 0.0f)
+    {
+        pPos.x = 0.0f;
+    }
 }
 
 void Scene_Play::sDoAction(const Action& action)
@@ -200,12 +258,14 @@ void Scene_Play::sDoAction(const Action& action)
         else if (action.name() == "PAUSE")              { m_Paused = !m_Paused; }
         else if (action.name() == "QUIT")               { onEnd(); }
         else if (action.name() == "UP")                 { input.up = true; }
+        else if (action.name() == "DOWN")               { input.down = true; }
         else if (action.name() == "RIGHT")              { input.right = true; }
         else if (action.name() == "LEFT")               { input.left = true; }
     }
     else if (action.type() == "END")
     {
              if (action.name() == "UP")         { input.up = false; }
+        else if (action.name() == "DOWN")       { input.down = false; }
         else if (action.name() == "RIGHT")      { input.right = false; }
         else if (action.name() == "LEFT")       { input.left = false; }
     }
@@ -216,6 +276,7 @@ void Scene_Play::sAnimation()
     // TODO: Complete the Animation class code first
 
     // TODO: set the animation of the player based on its CState component
+    m_Player->addComponent<CAnimation>(m_Game->assets().getAnimation(m_Player->getComponent<CState>().state), true);
     // TODO: for each entity with an animation, call entity->getComponent<CAnimation>().animation.update()
     //       if the animation is not repeated, and it has ended, destroy the entity
 }

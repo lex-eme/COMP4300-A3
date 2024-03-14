@@ -19,7 +19,7 @@ struct CTransform : public Component
 
 	CTransform() {}
 	CTransform(const Vec2& p)
-		: pos(p) {}
+		: pos(p), prevPos(p) {}
 	CTransform(const Vec2& p, const Vec2& sp, const Vec2& sc, float a)
 		: pos(p), prevPos(p), velocity(sp), scale(sc), angle(a) {}
 };
@@ -78,7 +78,7 @@ struct CGravity : public Component
 
 struct CState : public Component
 {
-	std::string state = "jumping";
+	std::string state = "Air";
 
 	CState() {}
 	CState(const std::string& s)
