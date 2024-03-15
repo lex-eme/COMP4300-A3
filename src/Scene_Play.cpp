@@ -122,11 +122,13 @@ void Scene_Play::update()
     m_Entities.update();
 
     // TODO: implement pause functionality
-
-    sMovement();
-    sLifespan();
-    sCollision();
-    sAnimation();
+    if (!m_Paused)
+    {
+        sMovement();
+        sLifespan();
+        sCollision();
+        sAnimation();
+    }
     sRender();
 }
 
@@ -287,8 +289,6 @@ void Scene_Play::sAnimation()
 
 void Scene_Play::onEnd()
 {
-    // TODO: when the scene ends, change back to the menu scene
-    //       use m_Game->changeScene(correct params);
     m_Game->changeScene("MENU", nullptr, true);
 }
 
