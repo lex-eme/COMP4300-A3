@@ -27,6 +27,10 @@ void Scene_Play::init(const std::string& levelPath)
     m_GridText.setCharacterSize(12);
     m_GridText.setFont(m_Game->assets().getFont("Mario"));
 
+    sf::View view = m_Game->window().getView();
+    view.setSize(width() / 4.0f, height() / 4.0f);
+    m_Game->window().setView(view);
+
     loadLevel(levelPath);
 }
 
@@ -296,9 +300,9 @@ void Scene_Play::sRender()
 
     // set the viewport of the window to be centered on the player if it's far enough right
     auto& pPos = m_Player->getComponent<CTransform>().pos;
-    float windowCenterX = std::max(m_Game->window().getSize().x / 2.0f, pPos.x);
     sf::View view = m_Game->window().getView();
-    view.setCenter(windowCenterX, m_Game->window().getSize().y - view.getCenter().y);
+    float windowCenterX = std::max(view.getSize().x / 2.0f, pPos.x);
+    view.setCenter(windowCenterX, m_Game->window().getSize().y - view.getSize().y / 2.0f);
     m_Game->window().setView(view);
 
     if (m_DrawTextures)

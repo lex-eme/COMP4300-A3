@@ -44,6 +44,7 @@ void Scene_Menu::init()
 void Scene_Menu::update()
 {
 	m_Entities.update();
+	m_Game->window().setView(m_Game->window().getDefaultView());
 }
 
 void Scene_Menu::onEnd()
