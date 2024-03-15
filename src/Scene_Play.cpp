@@ -344,10 +344,10 @@ void Scene_Play::sRender()
 
     if (m_DrawGrid)
     {
-        float width = view.getSize().x;
+        float vWidth = view.getSize().x;
         float vHeight = view.getSize().y;
-        float leftX = view.getCenter().x - width / 2.0f;
-        float rightX = leftX + width + m_GridSize.x;
+        float leftX = view.getCenter().x - vWidth / 2.0f;
+        float rightX = leftX + vWidth + m_GridSize.x;
         float nextGridX = leftX - ((int)leftX % (int)m_GridSize.x);
 
         for (float x = nextGridX; x < rightX; x += m_GridSize.x)
