@@ -24,7 +24,7 @@ void Scene_Play::init(const std::string& levelPath)
     registerAction(sf::Keyboard::Q, "LEFT");
     // TODO: Register all gameplay Actions
 
-    m_GridText.setCharacterSize(12);
+    m_GridText.setCharacterSize(5);
     m_GridText.setFont(m_Game->assets().getFont("Mario"));
 
     sf::View view = m_Game->window().getView();
@@ -344,16 +344,18 @@ void Scene_Play::sRender()
 
     if (m_DrawGrid)
     {
-        float leftX = m_Game->window().getView().getCenter().x - width() / 2;
-        float rightX = leftX + width() + m_GridSize.x;
+        float width = view.getSize().x;
+        float vHeight = view.getSize().y;
+        float leftX = view.getCenter().x - width / 2.0f;
+        float rightX = leftX + width + m_GridSize.x;
         float nextGridX = leftX - ((int)leftX % (int)m_GridSize.x);
 
         for (float x = nextGridX; x < rightX; x += m_GridSize.x)
         {
-            drawLine(Vec2(x, 0.0f), Vec2(x, height()));
+            drawLine(Vec2(x, height() - vHeight), Vec2(x, height()));
         }
 
-        for (float y = 0; y < height(); y += m_GridSize.y)
+        for (float y = 0; y < vHeight; y += m_GridSize.y)
         {
             drawLine(Vec2(leftX, height() - y), Vec2(rightX, height() - y));
 
@@ -363,7 +365,7 @@ void Scene_Play::sRender()
                 std::string yCell = std::to_string((int)y / (int)m_GridSize.y);
                 m_GridText.setString("(" + xCell + "," + yCell + ")");
                 m_GridText.setPosition(x + 3.0f, height() - y - m_GridSize.y + 2.0f);
-                m_Game->window().draw(m_GridText);
+                //m_Game->window().draw(m_GridText);
             }
         }
     }
