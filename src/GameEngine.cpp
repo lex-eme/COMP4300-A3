@@ -63,7 +63,7 @@ void GameEngine::init(const std::string& path)
 {
 	m_Assets.loadFromFile(path);
 
-	m_Window.create(sf::VideoMode(1280, 800), "Not Mario");
+	m_Window.create(sf::VideoMode(1920, 1080), "Not Mario");
 	m_Window.setVerticalSyncEnabled(true);
 
 	changeScene("MENU", std::make_shared<Scene_Menu>(this));

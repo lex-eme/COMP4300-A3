@@ -86,7 +86,7 @@ Tile    Ground    49  0
 Tile    Ground    50  0
 Tile    Ground    51  0
 Tile    Ground    52  0
-Tile    Brick     48  6
+Tile    Question  48  6
 Tile    Brick     52  6
 Tile    Brick     52  5
 Tile    Brick     52  4

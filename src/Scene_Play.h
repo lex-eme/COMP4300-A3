@@ -23,6 +23,7 @@ class Scene_Play : public Scene
 	bool						m_DrawGrid = false;
 	const Vec2					m_GridSize = { 16.0f, 16.0f };
 	sf::Text					m_GridText;
+	bool						m_StateChanged = false;
 
 public:
 	Scene_Play(GameEngine* gameEngine, const std::string& levelPath);

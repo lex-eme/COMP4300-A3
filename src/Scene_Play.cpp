@@ -19,10 +19,8 @@ void Scene_Play::init(const std::string& levelPath)
     registerAction(sf::Keyboard::C, "TOGGLE_COLLISION");
     registerAction(sf::Keyboard::G, "TOGGLE_GRID");
     registerAction(sf::Keyboard::Z, "UP");
-    registerAction(sf::Keyboard::S, "DOWN");
     registerAction(sf::Keyboard::D, "RIGHT");
     registerAction(sf::Keyboard::Q, "LEFT");
-    // TODO: Register all gameplay Actions
 
     m_GridText.setCharacterSize(5);
     m_GridText.setFont(m_Game->assets().getFont("Mario"));
@@ -44,26 +42,25 @@ Vec2 Scene_Play::gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity
 
 void Scene_Play::loadLevel(const std::string& filename)
 {
-    // reset the entity manager every time we load a level
     m_Entities = EntityManager();
 
     std::ifstream fin(filename);
-    std::string temp;
+    std::string overlap;
 
-    while (fin >> temp)
+    while (fin >> overlap)
     {
-        if (temp == "Tile")
+        if (overlap == "Tile")
         {
             std::string name;
             float x, y;
             fin >> name >> x >> y;
             auto e = m_Entities.addEntity(name);
             
-            e->addComponent<CAnimation>(m_Game->assets().getAnimation(name), false);
+            e->addComponent<CAnimation>(m_Game->assets().getAnimation(name), true);
             e->addComponent<CTransform>(gridToMidPixel(x, y, e));
             e->addComponent<CBoundingBox>(m_Game->assets().getAnimation(name).getSize());
         }
-        else if (temp == "Dec")
+        else if (overlap == "Dec")
         {
             std::string name;
             float x, y;
@@ -73,7 +70,7 @@ void Scene_Play::loadLevel(const std::string& filename)
             e->addComponent<CAnimation>(m_Game->assets().getAnimation(name), false);
             e->addComponent<CTransform>(gridToMidPixel(x, y, e));
         }
-        else if (temp == "Player")
+        else if (overlap == "Player")
         {
             fin >> m_PlayerConfig.X >> m_PlayerConfig.Y >> m_PlayerConfig.CX
                 >> m_PlayerConfig.CY >> m_PlayerConfig.SPEED >> m_PlayerConfig.MAXSPEED
@@ -82,23 +79,6 @@ void Scene_Play::loadLevel(const std::string& filename)
     }
 
     spawnPlayer();
-
-    /*if (brick->getComponent<CAnimation>().animation.getName() == "Brick")
-    {
-        std::cout << "This could be a good way od identifying if tile is a tile is a brick" << std::endl;
-    }*/
-
-    // NOTE: this is incredibly important please read this example
-    //      Components are now returned as references rather than pointers
-    //      If you do not specify a reference variable type, it will COPY the component
-    //      Here is an example:
-    //
-    //      This will copy the transform into the variable 't1' - it is incorrect
-    //      auto t1 = entity->get<CTransform>();
-    //
-    //      This will reference the transform with the variable 't2' - it is correct
-    //      Now any changes you make to t2 will be changed inside the enetity
-    //      auto& t2 = entity->get<CTransform>();
 }
 
 void Scene_Play::spawnPlayer()
@@ -108,8 +88,6 @@ void Scene_Play::spawnPlayer()
     m_Player->addComponent<CTransform>(gridToMidPixel(m_PlayerConfig.X, m_PlayerConfig.Y, m_Player), Vec2(), Vec2(-1.0f, 1.0f), 0.0f);
     m_Player->addComponent<CBoundingBox>(Vec2(m_PlayerConfig.CX, m_PlayerConfig.CY));
     m_Player->addComponent<CGravity>(m_PlayerConfig.GRAVITY);
-
-    // TODO: be suze to add the remaining components to the player
 }
 
 void Scene_Play::spawnBullet(std::shared_ptr<Entity> entity)
@@ -121,7 +99,7 @@ void Scene_Play::update()
 {
     m_Entities.update();
 
-    // TODO: implement pause functionality
+    m_StateChanged = false;
     if (!m_Paused)
     {
         sMovement();
@@ -134,7 +112,6 @@ void Scene_Play::update()
 
 void Scene_Play::sMovement()
 {
-    // TODO: Implement player movement / jumping based on its CInput component
     auto& input = m_Player->getComponent<CInput>();
     auto& transform = m_Player->getComponent<CTransform>();
     if (input.up && input.canJump)
@@ -159,11 +136,19 @@ void Scene_Play::sMovement()
 
     if (xSpeed == 0.0f)
     {
-        m_Player->getComponent<CState>().state = "Stand";
+        if (m_Player->getComponent<CState>().state != "Stand")
+        {
+            m_Player->getComponent<CState>().state = "Stand";
+            m_StateChanged = true;
+        }
     }
     else
     {
-        m_Player->getComponent<CState>().state = "Run";
+        if (m_Player->getComponent<CState>().state != "Run")
+        {
+            m_Player->getComponent<CState>().state = "Run";
+            m_StateChanged = true;
+        }
     }
 
     auto& gravity = m_Player->getComponent<CGravity>();
@@ -185,10 +170,6 @@ void Scene_Play::sCollision()
 {
     // TODO: Implement bullet / tile collisions
     //       Destroy the tile if it has a Brick animation
-    // TODO: Implement player / tile collisions and resolutions
-    //       Update the CState component of the player to store whether
-    //       it is currently on the ground or in the air. This will be
-    //       used by the Animation system
     auto& pPos = m_Player->getComponent<CTransform>().pos;
     bool hasCollision = false;
 
@@ -237,7 +218,11 @@ void Scene_Play::sCollision()
 
     if (!hasCollision)
     {
-        m_Player->getComponent<CState>().state = "Air";
+        if (m_Player->getComponent<CState>().state != "Air")
+        {
+            m_Player->getComponent<CState>().state = "Air";
+            m_StateChanged = true;
+        }
     }
     
     if (pPos.y > height())
@@ -279,12 +264,21 @@ void Scene_Play::sDoAction(const Action& action)
 
 void Scene_Play::sAnimation()
 {
-    // TODO: Complete the Animation class code first
+    if (m_StateChanged)
+    {
+        m_Player->addComponent<CAnimation>(m_Game->assets().getAnimation(m_Player->getComponent<CState>().state), true);
+    }
+    
+    for (auto e : m_Entities.getEntities())
+    {
+        auto& anim = e->getComponent<CAnimation>();
+        anim.animation.update();
 
-    // TODO: set the animation of the player based on its CState component
-    m_Player->addComponent<CAnimation>(m_Game->assets().getAnimation(m_Player->getComponent<CState>().state), true);
-    // TODO: for each entity with an animation, call entity->getComponent<CAnimation>().animation.update()
-    //       if the animation is not repeated, and it has ended, destroy the entity
+        if (!anim.repeat && anim.animation.hasEnded())
+        {
+            e->destroy();
+        }
+    }
 }
 
 void Scene_Play::onEnd()
@@ -294,11 +288,9 @@ void Scene_Play::onEnd()
 
 void Scene_Play::sRender()
 {
-    // color the background darker so you know that the game is paused
     if (!m_Paused) { m_Game->window().clear(sf::Color(148, 148, 255)); }
     else { m_Game->window().clear(sf::Color(58, 58, 100)); }
 
-    // set the viewport of the window to be centered on the player if it's far enough right
     auto& pPos = m_Player->getComponent<CTransform>().pos;
     sf::View view = m_Game->window().getView();
     float windowCenterX = std::max(view.getSize().x / 2.0f, pPos.x);

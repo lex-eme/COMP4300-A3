@@ -17,7 +17,6 @@ protected:
 	EntityManager	m_Entities;
 	ActionMap		m_ActionMap;
 	bool			m_Paused = false;
-	bool			m_HasEnded = false;
 	size_t			m_CurrentFrame = 0;
 
 public:
