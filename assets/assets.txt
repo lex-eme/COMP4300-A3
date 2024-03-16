@@ -26,8 +26,8 @@ Animation CloudSmall    TexCloudS       1     0
 Animation BushBig       TexBushBig      1     0
 Animation Ground        TexGround       1     0
 Animation Block         TexBlock        1     0
-Animation Pole          TexFlag         1     0
+Animation Pole          TexPole         1     0
 Animation PoleTop       TexPoleTop      1     0
-Font      Tech          assets/fonts/tech.ttf
-Font      Mario         assets/fonts/mario.ttf
-Font      Megaman       assets/fonts/megaman.ttf
+Font      Tech          assets/fonts/Techno.ttf
+Font      Mario         assets/fonts/RetroMario-Regular.otf
+Font      Megaman       assets/fonts/Mega-Man-Battle-Network.ttf

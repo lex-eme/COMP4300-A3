@@ -21,7 +21,7 @@ class Scene_Play : public Scene
 	bool						m_DrawTextures = true;
 	bool						m_DrawCollision = false;
 	bool						m_DrawGrid = false;
-	const Vec2					m_GridSize = { 64.0f, 64.0f };
+	const Vec2					m_GridSize = { 16.0f, 16.0f };
 	sf::Text					m_GridText;
 
 public:

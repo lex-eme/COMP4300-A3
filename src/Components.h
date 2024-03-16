@@ -24,15 +24,6 @@ struct CTransform : public Component
 		: pos(p), prevPos(p), velocity(sp), scale(sc), angle(a) {}
 };
 
-struct CScore : public Component
-{
-	int score = 0;
-
-	CScore() {}
-	CScore(int s)
-		: score(s) {}
-};
-
 struct CLifeSpan : public Component
 {
 	int lifespan = 0;
