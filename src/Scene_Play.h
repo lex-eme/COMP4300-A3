@@ -21,8 +21,9 @@ class Scene_Play : public Scene
 	bool						m_DrawTextures = true;
 	bool						m_DrawCollision = false;
 	bool						m_DrawGrid = false;
-	const Vec2					m_GridSize = { 64.0f, 64.0f };
+	const Vec2					m_GridSize = { 16.0f, 16.0f };
 	sf::Text					m_GridText;
+	bool						m_StateChanged = false;
 
 public:
 	Scene_Play(GameEngine* gameEngine, const std::string& levelPath);
@@ -30,7 +31,7 @@ public:
 
 private:
 	void init(const std::string& levelPath);
-	Vec2 gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity);
+	Vec2 gridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity) const;
 	void loadLevel(const std::string& filename);
 	void spawnPlayer();
 	void spawnBullet(std::shared_ptr<Entity> entity);

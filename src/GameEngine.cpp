@@ -63,15 +63,7 @@ void GameEngine::init(const std::string& path)
 {
 	m_Assets.loadFromFile(path);
 
-	m_Assets.addFont("Tech", "assets/fonts/Techno.ttf");
-	m_Assets.addFont("Mario", "assets/fonts/RetroMario-Regular.otf");
-	m_Assets.addFont("Megaman", "assets/fonts/Mega-Man-Battle-Network.ttf");
-
-	m_Assets.addTexture("TexBrick", "assets/textures/mario/brick.png");
-	Animation brickAnim("Brick", m_Assets.getTexture("TexBrick"));
-	m_Assets.addAnimation(brickAnim.getName(), brickAnim);
-
-	m_Window.create(sf::VideoMode(1280, 768), "Not Mario");
+	m_Window.create(sf::VideoMode(1920, 1080), "Not Mario");
 	m_Window.setVerticalSyncEnabled(true);
 
 	changeScene("MENU", std::make_shared<Scene_Menu>(this));
