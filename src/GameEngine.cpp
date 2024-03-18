@@ -8,7 +8,7 @@ GameEngine::GameEngine(const std::string& path)
 	init(path);
 }
 
-void GameEngine::changeScene(std::string sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene)
+void GameEngine::changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene)
 {
 	if (scene)
 	{
