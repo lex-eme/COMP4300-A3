@@ -107,7 +107,6 @@ void Scene_Play::update()
         sCollision();
         sAnimation();
     }
-    sRender();
 }
 
 void Scene_Play::sMovement()
