@@ -45,11 +45,11 @@ void Scene_Play::loadLevel(const std::string& filename)
     m_Entities = EntityManager();
 
     std::ifstream fin(filename);
-    std::string overlap;
+    std::string type;
 
-    while (fin >> overlap)
+    while (fin >> type)
     {
-        if (overlap == "Tile")
+        if (type == "Tile")
         {
             std::string name;
             float x, y;
@@ -60,7 +60,7 @@ void Scene_Play::loadLevel(const std::string& filename)
             e->addComponent<CTransform>(gridToMidPixel(x, y, e));
             e->addComponent<CBoundingBox>(m_Game->assets().getAnimation(name).getSize());
         }
-        else if (overlap == "Dec")
+        else if (type == "Dec")
         {
             std::string name;
             float x, y;
@@ -70,7 +70,7 @@ void Scene_Play::loadLevel(const std::string& filename)
             e->addComponent<CAnimation>(m_Game->assets().getAnimation(name), false);
             e->addComponent<CTransform>(gridToMidPixel(x, y, e));
         }
-        else if (overlap == "Player")
+        else if (type == "Player")
         {
             fin >> m_PlayerConfig.X >> m_PlayerConfig.Y >> m_PlayerConfig.CX
                 >> m_PlayerConfig.CY >> m_PlayerConfig.SPEED >> m_PlayerConfig.MAXSPEED
@@ -187,7 +187,7 @@ void Scene_Play::sCollision()
             auto& pPrevPos = m_Player->getComponent<CTransform>().prevPos;
             if (prevOverlap.y > 0.0f)
             {
-                pPos.x += pPos.x < qPos.x ? -overlap.x : overlap.x;
+                pPos.x += pPrevPos.x < qPos.x ? -overlap.x : overlap.x;
             }
 
             if (prevOverlap.x > 0.0f)
